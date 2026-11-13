@@ -16,7 +16,7 @@ const cleanTitle = (body, id, ts) => ({
 /* ---------- Búsqueda de portadas y datos ---------- */
 const https = u => (u ? String(u).replace(/^http:/, "https:") : "");
 const txt = h => { let s = String(h || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 420); if (s.length >= 420) { const i = s.lastIndexOf(". "); if (i > 150) s = s.slice(0, i + 1); } return s; };
-const gtag = s => { const o = []; [[/comed/i, "Comedia"], [/drama/i, "Drama"], [/fantas/i, "Fantasía"], [/romanc|romanti/i, "Romance"], [/histor|period/i, "Época"], [/teen|young adult|juvenil|shoujo|shojo/i, "Juvenil"]].forEach(([r, t]) => r.test(s) && o.push(t)); return o; };
+const gtag = s => { const o = []; [[/comed/i, "Comedia"], [/drama/i, "Drama"], [/fantas/i, "Fantasía"], [/romanc|romanti/i, "Romance"], [/histor|period/i, "Época"], [/teen|young adult|juvenil|shoujo|shojo/i, "Juvenil"], [/horror|terror/i, "Terror"], [/thriller|suspens/i, "Thriller"], [/myster|miste/i, "Misterio"], [/crime|crimen|detective/i, "Crimen"], [/action|acci[oó]n/i, "Acción"], [/adventure|aventura/i, "Aventura"], [/sci-?fi|science fiction|ciencia ficci/i, "Ciencia ficción"], [/animat|animaci/i, "Animación"], [/documentar/i, "Documental"], [/musical/i, "Musical"], [/supernat|paranormal/i, "Sobrenatural"], [/vampir/i, "Vampiras"], [/western/i, "Western"], [/biograph|biogr[aá]f/i, "Biográfica"], [/\bwar\b|guerra/i, "Guerra"], [/superhero|superh[eé]roe/i, "Superhéroes"], [/dystop|distop/i, "Distopía"], [/slice of life/i, "Slice of life"]].forEach(([r, t]) => r.test(s) && o.push(t)); return o; };
 const mtag = s => { const o = []; [[/pop/i, "Pop"], [/rock|punk|metal/i, "Rock"], [/indie|alternativ/i, "Indie"], [/folk|country|singer/i, "Folk"], [/dance|electr|house|club/i, "Para bailar"]].forEach(([r, t]) => r.test(s) && o.push(t)); return o; };
 const get = async (u, h = {}) => { const r = await fetch(u, { headers: { "user-agent": "PinkPonyClub/1.0", accept: "application/json", ...h } }); if (!r.ok) throw new Error(String(r.status)); return r.json(); };
 const TK = (process.env.TMDB_KEY || "").trim();
@@ -25,7 +25,7 @@ const tm = async (path, params = "", lang = "es-ES") => {
   const url = `https://api.themoviedb.org/3/${path}${path.includes("?") ? "&" : "?"}language=${lang}${params}${bearer ? "" : "&api_key=" + TK}`;
   return get(url, bearer ? { Authorization: "Bearer " + TK } : {});
 };
-const GEN = { 35: "Comedia", 18: "Drama", 14: "Fantasía", 10765: "Fantasía", 10749: "Romance", 36: "Época" };
+const GEN = { 28: "Acción", 10759: "Acción", 12: "Aventura", 16: "Animación", 35: "Comedia", 80: "Crimen", 99: "Documental", 18: "Drama", 14: "Fantasía", 10765: "Fantasía", 36: "Época", 27: "Terror", 9648: "Misterio", 10749: "Romance", 878: "Ciencia ficción", 53: "Thriller", 10752: "Guerra", 10768: "Guerra", 37: "Western", 10402: "Musical" };
 const tmdb = async (type, q) => {
   const kind = type === "serie" ? "tv" : "movie";
   const d = await tm(`search/${kind}?query=${encodeURIComponent(q)}&include_adult=false`);
