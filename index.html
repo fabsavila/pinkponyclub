@@ -3,7 +3,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#D162A4">
 <title>Pink Pony Club</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦄%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pink Pony">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{--bg:#fff4f9;--card:#fff;--tx:#3a1530;--mu:#86607b;--ac:#D162A4;--ac2:#A30262;--bd:#f1d3e3;--chip:#fbe6f0;--fl:linear-gradient(90deg,#D52D00,#EF7627,#FF9A56,#fff,#D162A4,#B55690,#A30262);--lg:linear-gradient(90deg,#D52D00,#EF7627 25%,#D162A4 65%,#A30262)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c0f19;--card:#2a1625;--tx:#fbeaf3;--mu:#c79ab8;--ac:#e27fba;--ac2:#ff9acb;--bd:#47243d;--chip:#3b1d32;--lg:linear-gradient(90deg,#ff6a3d,#ff9a56 25%,#e27fba 65%,#ff9acb)}}
@@ -69,7 +75,7 @@ nav .fab{flex:0 0 62px;height:62px;margin:-26px 6px 0;border-radius:50%;backgrou
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const TYPES={serie:["📺","Serie","¿Qué serie?"],pelicula:["🎬","Película","¿Qué película?"],libro:["📖","Libro","¿Qué libro?"],comic:["💬","Cómic","¿Qué cómic?"],musica:["🎵","Música","¿Qué álbum o canción?"]};
+const TYPES={serie:["📺","Serie","¿Qué serie?"],pelicula:["🎬","Película","¿Qué película?"],libro:["📖","Libro","¿Qué libro?"],comic:["💬","Cómic / Manga","¿Qué cómic o manga?"],musica:["🎵","Música","¿Qué álbum o canción?"]};
 const TG={"Final feliz":["🌈","#EF7627"],"Final trágico":["💔","#A30262"],"Slow burn":["🔥","#D52D00"],"Enemies to lovers":["⚔️","#B55690"],"Comedia":["😂","#c9760d"],"Drama":["🎭","#D162A4"],"Época":["👒","#B55690"],"Fantasía":["✨","#a15bd6"],"Romance":["💌","#D52D00"],"+18":["🔞","#A30262"],"Juvenil":["🍭","#EF7627"]};
 const WARN=["Muerte de personajes","Homofobia","Violencia","Abuso","Contenido sexual","Autolesión"];
 const GR=[["#D52D00","#EF7627"],["#EF7627","#e0861f"],["#D162A4","#EF7627"],["#B55690","#D162A4"],["#A30262","#D162A4"],["#A30262","#D52D00"]];
@@ -126,8 +132,7 @@ const txt=h=>String(h||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim().sl
 const https=u=>u?String(u).replace(/^http:/,"https:"):"";
 async function search(type,q){const e=encodeURIComponent(q);let out=[];
  if(type==="serie"){const d=await(await fetch("https://api.tvmaze.com/search/shows?q="+e)).json();out=d.slice(0,8).map(({show:s})=>({name:s.name,year:(s.premiered||"").slice(0,4),creator:"",platform:s.network?.name||s.webChannel?.name||"",syn:txt(s.summary),cover:https(s.image?.original||s.image?.medium),tags:gtag((s.genres||[]).join(" "))}))}
- else if(type==="pelicula"||type==="musica"){const d=await(await fetch(`https://itunes.apple.com/search?limit=8&country=ES&lang=es_es&${type==="pelicula"?"media=movie":"media=music&entity=album"}&term=${e}`)).json();out=d.results.map(s=>({name:s.trackName||s.collectionName,year:(s.releaseDate||"").slice(0,4),creator:s.artistName||"",platform:"",syn:txt(s.longDescription||s.shortDescription),cover:https((s.artworkUrl100||"").replace("100x100bb",type==="pelicula"?"400x600bb":"600x600bb")),tags:gtag(s.primaryGenreName||"")}))}
- else{const d=await(await fetch(`https://www.googleapis.com/books/v1/volumes?maxResults=8&printType=books&q=${e}${type==="comic"?"+subject:comics":""}`)).json();out=(d.items||[]).map(({volumeInfo:v})=>({name:v.title,year:(v.publishedDate||"").slice(0,4),creator:(v.authors||[]).join(", "),platform:"",syn:txt(v.description),cover:https(v.imageLinks?.thumbnail||"").replace("zoom=1","zoom=2"),tags:gtag((v.categories||[]).join(" "))}))}
+ else{const r=await fetch(`/buscar?type=${type}&q=${e}`,{headers:{"x-club-code":code,"x-admin-code":adminCode}});if(!r.ok)throw new Error("search");out=await r.json()}
  return out.filter(x=>x.name)}
 const isEs=t=>{if(!t)return false;const a=(t.match(/\b(el|la|los|las|de|que|y|en|un|una|con|por|su|se)\b/gi)||[]).length,b=(t.match(/\b(the|and|of|to|is|in|with|her|his|that|for)\b/gi)||[]).length;return a>b};
 async function esSyn(name){try{const d=await(await fetch("https://es.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=1&prop=extracts&exintro=1&explaintext=1&exsentences=3&redirects=1&format=json&origin=*&gsrsearch="+encodeURIComponent(name))).json();const p=Object.values(d.query?.pages||{})[0];if(!p)return "";const n=x=>x.toLowerCase().normalize("NFD").replace(/[^a-z0-9 ]/g,"");if(!n(p.title).includes(n(name).split(" ")[0]))return "";const t=String(p.extract||"").replace(/\s+/g," ").trim();return isEs(t)?t.slice(0,400):""}catch(e){return ""}}
@@ -174,5 +179,6 @@ document.addEventListener("input",e=>{const i=e.target.id,v=e.target.value;if(i=
 document.addEventListener("keydown",e=>{if(e.key==="Enter"){if(e.target.id==="code")$("#go").click();if(e.target.id==="sq")doSearch()}});
 let pt=0;const poll=()=>{if(!pt)pt=setInterval(()=>{if(!document.hidden&&!step&&pass)load()},30000)};
 const upd=()=>{if(!pass)return;const a=document.activeElement?.id;if(a==="q")drawList();else if(!["rn","rt"].includes(a))render();if(openId&&!["rn","rt"].includes(a))drawModal()};
+if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
 (async()=>{ready=1;if(code){try{const r=await api("login");pass=true;admin=!!r.admin&&!!adminCode;if(!admin&&adminCode){}}catch(e){pass=false}}render();if(pass){load();poll()}})();
 </script></body></html>
