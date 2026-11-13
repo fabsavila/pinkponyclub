@@ -83,7 +83,7 @@ const pony=(a,big)=>`<span class="pn" style="${big?"font-size:22px":""}">${[1,2,
 const toast=m=>{const d=document.createElement("div");d.className="toast";d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),3200)};
 const confetti=()=>{if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;for(let i=0;i<14;i++){const d=document.createElement("div");d.className="cf";d.textContent=["🦄","💖","🌈","✨"][i%4];d.style.left=(8+Math.random()*80)+"%";d.style.animationDelay=(Math.random()*.3)+"s";document.body.appendChild(d);setTimeout(()=>d.remove(),1900)}};
 async function api(path,method="GET",body){const r=await fetch("/api/"+path,{method,headers:{"content-type":"application/json","x-club-code":code,"x-admin-code":adminCode},body:body?JSON.stringify(body):undefined});
- const j=await r.json().catch(()=>({}));if(r.status===401&&path!=="login"){pass=false;ls("ppc","");render()}if(!r.ok)throw new Error(j.error||"Error");return j}
+ const j=await r.json().catch(()=>null);if(j===null&&!r.ok)throw new Error("No se encontró el servidor de la app. Revisa que la carpeta netlify esté en GitHub y vuelve a publicar");if(r.status===401&&path!=="login"){pass=false;ls("ppc","");render()}if(!r.ok)throw new Error(j.error||"Error");return j}
 const save=async f=>{try{await f();return true}catch(e){toast(e.message&&e.message.length<80?e.message:"No se pudo guardar. Intenta de nuevo");return false}};
 async function load(){try{const d=await api("data");titles=d.titles;reviews=d.reviews;upd()}catch(e){}}
 const pill=(x,on,k)=>`<span class="pl ${on?"on":""}" ${k?`data-${k[0]}="${k[1]}" data-v="${esc(x)}"`:""} style="--c:${TG[x]?.[1]||"#D162A4"}">${TG[x]?.[0]||""} ${esc(x)}</span>`;
@@ -97,7 +97,7 @@ function ranking(ttl,sub,fil,srt){const l=titles.filter(t=>st(t.id).n&&fil(t)).s
 function render(){
  const m=$("#m"),nav=$("#nav");
  if(!ready)return;
- if(!pass){nav.hidden=true;$("#vt").textContent="";m.innerHTML=`<div class="card c" style="margin-top:30px"><div style="font-size:50px">🔐</div><h2>Solo para integrantes</h2><p class="mu">Escribe el código secreto del club para entrar.</p><input id="code" type="password" placeholder="Código del club" autocomplete="off"><button class="btn w" id="go">Entrar</button></div>`;return}
+ if(!pass){nav.hidden=true;$("#vt").textContent="";m.innerHTML=`<div class="card c" style="margin-top:30px"><div style="font-size:50px">🔐</div><h2>Solo para integrantes</h2><p class="mu">Escribe el código secreto del club para entrar.</p><div style="position:relative"><input id="code" type="password" placeholder="Código del club" autocomplete="off" style="padding-right:50px"><button id="eye" type="button" aria-label="Mostrar u ocultar código" style="position:absolute;right:6px;top:8px;background:none;border:0;font-size:22px;cursor:pointer">👁️</button></div><button class="btn w" id="go">Entrar</button></div>`;return}
  nav.hidden=false;$("#vt").textContent=TITLES[view];
  const tabs=[["inicio","🏠","Inicio"],["catalogo","📚","Catálogo"],["fab","➕",""],["rankings","🏆","Rankings"],["guia","💌","Guía"]];
  nav.innerHTML=tabs.map(t=>t[0]==="fab"?`<button class="fab" id="fab" aria-label="Agregar">➕</button>`:`<button data-v="${t[0]}" class="${view===t[0]?"on":""}"><span>${t[1]}</span>${t[2]}</button>`).join("");
@@ -139,6 +139,7 @@ function addUI(){const a=$("#ad");if(!step){a.innerHTML="";return}let h=`<div cl
 const newDraft=t=>({name:"",type:t,year:"",creator:"",platform:"",syn:"",tags:[],warns:[],cover:""});
 async function doSearch(){const q=$("#sq").value.trim();if(!q)return;busy=true;results=[];addUI();$("#sq").value=q;try{results=await search(draft.type,q)}catch(e){results=[];toast("No se pudo buscar. Puedes agregarlo a mano")}busy=false;addUI();$("#sq").value=q}
 document.addEventListener("click",async e=>{const x=e.target,c=s=>x.closest(s);let el;
+ if(c("#eye")){const i=$("#code");i.type=i.type==="password"?"text":"password";$("#eye").textContent=i.type==="password"?"👁️":"🙈";return}
  if(c("#go")){const v=$("#code").value.trim();code=v;try{const r=await api("login");pass=true;ls("ppc",v);admin=r.admin;render();load();poll()}catch(er){code="";toast(er.message==="code"?"Código incorrecto 🙈":er.message)}return}
  if(c("#adin")){const v=prompt("Contraseña de administradora:");if(!v)return;const old=adminCode;adminCode=v.trim();try{const r=await api("login");if(r.admin){admin=true;ls("ppca",adminCode);toast("Modo admin activado ✅");render()}else{adminCode=old;toast("Contraseña incorrecta")}}catch(er){adminCode=old;toast("Contraseña incorrecta")}return}
  if(c("#adout")){admin=false;adminCode="";ls("ppca","");render();return}
